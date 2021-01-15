@@ -1,7 +1,6 @@
 package transformations
 
-import org.apache.spark
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql._
 
 object w_geografia {
   def main(args: Array[String]): Unit = {
