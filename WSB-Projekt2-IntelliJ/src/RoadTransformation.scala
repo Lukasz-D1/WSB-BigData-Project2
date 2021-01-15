@@ -1,5 +1,8 @@
 package com.wsb.project
 
+import org.apache.spark.sql._
+import org.apache.spark.sql.expressions.Window
+
 // Uwaga: dane dot. dróg znajdują się w plikach "mainData<JED_ADM>"
 object RoadTransformation {
 
@@ -28,21 +31,42 @@ object RoadTransformation {
     val northEnglandRoads = readCsv(northEnglandRoadsPath)
     val southEnglandRoads = readCsv(southEnglandRoadsPath)
 
-    scotlandRoads.withColumn("id", monotonically_increasing_id())
+    val windowSortByRoadCategory = Window.orderBy("road_category")
+
+    val scotlandRoadsWithNoIds = scotlandRoads
+      .select(
+        "road_category",
+        "road_type"
+      ).dropDuplicates()
+
+    // TODO: sprawdzić jak zadziała select ("*")/select (*) - czy można pobrać wszystkie kolumny z DF (włącznie z dodaną)
+    scotlandRoadsWithNoIds.withColumn("id", row_number().over(windowSortByRoadCategory))
       .select(
         "id",
         "road_category",
         "road_type"
       ).write.insertInto("w_drogi")
 
-    northEnglandRoads.withColumn("id", monotonically_increasing_id())
+    val northEnglandRoadsWithNoIds = northEnglandRoads
+      .select(
+        "road_category",
+        "road_type"
+      ).dropDuplicates()
+
+    northEnglandRoadsWithNoIds.withColumn("id", row_number().over(windowSortByRoadCategory))
       .select(
         "id",
         "road_category",
         "road_type"
       ).write.insertInto("w_drogi")
 
-    southEnglandRoads.withColumn("id", monotonically_increasing_id())
+    val southEnglandRoadsWithNoIds = southEnglandRoads
+      .select(
+        "road_category",
+        "road_type"
+      ).dropDuplicates()
+
+    southEnglandRoadsWithNoIds.withColumn("id", row_number().over(windowSortByRoadCategory))
       .select(
         "id",
         "road_category",
