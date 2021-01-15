@@ -28,23 +28,23 @@ object RoadTransformation {
     val northEnglandRoads = readCsv(northEnglandRoadsPath)
     val southEnglandRoads = readCsv(southEnglandRoadsPath)
 
-    scotlandRoads. // withColumn("index",monotonically_increasing_id()) - ?
-      select(
-        "road_name",
+    scotlandRoads.withColumn("id", monotonically_increasing_id())
+      .select(
+        "id",
         "road_category",
         "road_type"
       ).write.insertInto("w_drogi")
 
-    northEnglandRoads.
-      select(
-        "road_name",
+    northEnglandRoads.withColumn("id", monotonically_increasing_id())
+      .select(
+        "id",
         "road_category",
         "road_type"
       ).write.insertInto("w_drogi")
 
-    southEnglandRoads.
-      select(
-        "road_name",
+    southEnglandRoads.withColumn("id", monotonically_increasing_id())
+      .select(
+        "id",
         "road_category",
         "road_type"
       ).write.insertInto("w_drogi")
