@@ -2,7 +2,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.expressions.Window
 
 // change username
-val username = "bochra_piotr"
+val username = "username"
 
 spark.sql("DROP TABLE IF EXISTS w_drogi")
 spark.sql(
@@ -23,29 +23,6 @@ val northEnglandRoads = spark.read.
   option("header", true).
   option("inferSchema", true).
   csv(s"/user/$username/proj/spark/mainDataNorthEngland.csv").cache()
-
-// val windowSortByRoadCategory = Window.orderBy("road_category")
-
-// northEnglandRoads.withColumn("id", row_number().over(windowSortByRoadCategory))
-//   .select(
-//     "id",
-//     "road_category",
-//     "road_type"
-//   ).dropDuplicates("road_category").write.insertInto("w_drogi")
-
-// northEnglandRoads.withColumn("id", monotonically_increasing_id())
-//   .select(
-//     "id",
-//     "road_category",
-//     "road_type"
-//   ).dropDuplicates("road_category").write.insertInto("w_drogi")
-
-// northEnglandRoads.withColumn("id", monotonically_increasing_id())
-//   .select(
-//     "id",
-//     "road_category",
-//     "road_type"
-//   )
 
 val northEnglandRoadsWithNoIds = northEnglandRoads
   .select(
