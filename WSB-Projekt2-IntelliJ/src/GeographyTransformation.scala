@@ -1,5 +1,6 @@
 package com.wsb.project
 
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.SparkSession
 
 object GeographyTransformation {
@@ -9,13 +10,21 @@ object GeographyTransformation {
     .getOrCreate()
 
 
-  def readCsv(path: String) = {
+  def readCsv(path: String): DataFrame = {
     spark.read.
       format("org.apache.spark.csv").
       option("header", true).
       option("inferSchema", true).
-      csv(path).cache()
+      csv(path)
   }
+
+  case class Region(region_id: Int, region_name: String, region_ons_code: String)
+  case class Authority(local_authority_ons_code: String,
+                       local_authority_id: Int,
+                       local_authority_name: String,
+                       region_ons_code: String)
+
+  import spark.implicits._
 
   def main(args: Array[String]): Unit = {
 
@@ -30,17 +39,17 @@ object GeographyTransformation {
     val southEnglandAuthoritiesPath = s"/user/$username/proj/spark/authoritiesSouthEngland.csv"
     val southEnglandRegionsPath = s"/user/$username/proj/spark/regionsSouthEngland.csv"
 
-    val scotlandAuthorities = readCsv(scotlandAuthoritiesPath)
+    val scotlandAuthorities = readCsv(scotlandAuthoritiesPath).as[Authority].cache()
 
-    val scotlandRegions = readCsv(scotlandRegionsPath)
+    val scotlandRegions = readCsv(scotlandRegionsPath).as[Region].cache()
 
-    val northEnglandAuthorities = readCsv(northEnglandAuthoritiesPath)
+    val northEnglandAuthorities = readCsv(northEnglandAuthoritiesPath).as[Authority].cache()
 
-    val northEnglandRegions = readCsv(northEnglandRegionsPath)
+    val northEnglandRegions = readCsv(northEnglandRegionsPath).as[Region].cache()
 
-    val southEnglandAuthorities = readCsv(southEnglandAuthoritiesPath)
+    val southEnglandAuthorities = readCsv(southEnglandAuthoritiesPath).as[Authority].cache()
 
-    val southEnglandRegions = readCsv(southEnglandRegionsPath)
+    val southEnglandRegions = readCsv(southEnglandRegionsPath).as[Region].cache()
 
     scotlandAuthorities.join(scotlandRegions,
       scotlandAuthorities("region_ons_code") === scotlandRegions("region_ons_code")).
