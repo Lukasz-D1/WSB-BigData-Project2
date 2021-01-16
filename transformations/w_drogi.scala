@@ -2,7 +2,15 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.expressions.Window
 
 // change username
-val username = "username"
+val username = "bochra_piotr"
+
+def readCsv(path: String) = {
+  spark.read.
+    format("org.apache.spark.csv").
+    option("header", true).
+    option("inferSchema", true).
+    csv(path).cache()
+}
 
 spark.sql("DROP TABLE IF EXISTS w_drogi")
 spark.sql(
@@ -18,11 +26,21 @@ spark.sql(
     'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'"""
 )
 
-val northEnglandRoads = spark.read.
-  format("org.apache.spark.csv").
-  option("header", true).
-  option("inferSchema", true).
-  csv(s"/user/$username/proj/spark/mainDataNorthEngland.csv").cache()
+val scotlandRoadsPath = s"/user/$username/proj/spark/mainDataScotland.csv"
+val northEnglandRoadsPath = s"/user/$username/proj/spark/mainDataNorthEngland.csv"
+val southEnglandRoadsPath = s"/user/$username/proj/spark/mainDataSouthEngland.csv"
+
+val scotlandRoads = readCsv(scotlandRoadsPath)
+val northEnglandRoads = readCsv(northEnglandRoadsPath)
+val southEnglandRoads = readCsv(southEnglandRoadsPath)
+
+val windowSortByRoadCategory = Window.orderBy("road_category")
+
+val scotlandRoadsWithNoIds = scotlandRoads
+  .select(
+    "road_category",
+    "road_type"
+  ).dropDuplicates()
 
 val northEnglandRoadsWithNoIds = northEnglandRoads
   .select(
@@ -30,16 +48,20 @@ val northEnglandRoadsWithNoIds = northEnglandRoads
     "road_type"
   ).dropDuplicates()
 
-val windowSortByRoadCategory = Window.orderBy("road_category")
+val southEnglandRoadsWithNoIds = southEnglandRoads
+  .select(
+    "road_category",
+    "road_type"
+  ).dropDuplicates()
 
-northEnglandRoadsWithNoIds.withColumn("id", row_number().over(windowSortByRoadCategory))
+val collectedRoadsWithNoIds = scotlandRoadsWithNoIds.union(northEnglandRoadsWithNoIds).union(southEnglandRoadsWithNoIds).dropDuplicates()
+
+val collectedRoadsWithIds = collectedRoadsWithNoIds.withColumn("id", row_number().over(windowSortByRoadCategory))
   .select(
     "id",
     "road_category",
     "road_type"
-  )
-  .write
-  .insertInto("w_drogi")
+  ).write.insertInto("w_drogi")
 
 val drogi = spark.sql("SELECT id, road_category, road_type FROM w_drogi")
 

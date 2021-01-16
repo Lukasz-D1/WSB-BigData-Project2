@@ -10,6 +10,9 @@ object RoadTransformation {
     .appName("RoadTransformation")
     .getOrCreate()
 
+  import spark.implicits._
+
+  case class Road(id: Integer, roadCategory: String, roadType: String)
 
   def readCsv(path: String) = {
     spark.read.
@@ -27,9 +30,9 @@ object RoadTransformation {
     val northEnglandRoadsPath = s"/user/$username/proj/spark/mainDataNorthEngland.csv"
     val southEnglandRoadsPath = s"/user/$username/proj/spark/mainDataSouthEngland.csv"
 
-    val scotlandRoads = readCsv(scotlandRoadsPath)
-    val northEnglandRoads = readCsv(northEnglandRoadsPath)
-    val southEnglandRoads = readCsv(southEnglandRoadsPath)
+    val scotlandRoads = readCsv(scotlandRoadsPath).cache()
+    val northEnglandRoads = readCsv(northEnglandRoadsPath).cache()
+    val southEnglandRoads = readCsv(southEnglandRoadsPath).cache()
 
     val windowSortByRoadCategory = Window.orderBy("road_category")
 
@@ -39,26 +42,11 @@ object RoadTransformation {
         "road_type"
       ).dropDuplicates()
 
-    // TODO: sprawdzić jak zadziała select ("*")/select (*) - czy można pobrać wszystkie kolumny z DF (włącznie z dodaną)
-    scotlandRoadsWithNoIds.withColumn("id", row_number().over(windowSortByRoadCategory))
-      .select(
-        "id",
-        "road_category",
-        "road_type"
-      ).write.insertInto("w_drogi")
-
     val northEnglandRoadsWithNoIds = northEnglandRoads
       .select(
         "road_category",
         "road_type"
       ).dropDuplicates()
-
-    northEnglandRoadsWithNoIds.withColumn("id", row_number().over(windowSortByRoadCategory))
-      .select(
-        "id",
-        "road_category",
-        "road_type"
-      ).write.insertInto("w_drogi")
 
     val southEnglandRoadsWithNoIds = southEnglandRoads
       .select(
@@ -66,11 +54,14 @@ object RoadTransformation {
         "road_type"
       ).dropDuplicates()
 
-    southEnglandRoadsWithNoIds.withColumn("id", row_number().over(windowSortByRoadCategory))
+    val collectedRoadsWithNoIds = scotlandRoadsWithNoIds
+      .union(northEnglandRoadsWithNoIds).union(southEnglandRoadsWithNoIds).dropDuplicates()
+
+    val collectedRoadsWithIds = collectedRoadsWithNoIds.withColumn("id", row_number().over(windowSortByRoadCategory))
       .select(
         "id",
         "road_category",
         "road_type"
-      ).write.insertInto("w_drogi")
+      ).toDF().as[Road].write.insertInto("w_drogi")
   }
 }
