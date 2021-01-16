@@ -12,7 +12,7 @@ object WeatherTransformation {
   case class WeatherFromFile(region: String, date: String, time: String, conditions: String)
 
   def main(args: Array[String]): Unit = {
-    val username = "adepcio"
+    val username = "username"
 
     val weatherFile = spark.sparkContext.textFile(s"/user/$username/proj/spark/weather.txt")
     val linesRdd = weatherFile.flatMap(_.split("\n"))
