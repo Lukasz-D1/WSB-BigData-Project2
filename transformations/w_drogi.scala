@@ -1,5 +1,9 @@
 import org.apache.spark.sql._
+import org.apache.spark.sql.functions.{row_number}
 import org.apache.spark.sql.expressions.Window
+import spark.implicits._
+
+case class Road(id: BigInt, road_category: String, road_type: String)
 
 // change username
 val username = "bochra_piotr"
@@ -36,32 +40,24 @@ val southEnglandRoads = readCsv(southEnglandRoadsPath)
 
 val windowSortByRoadCategory = Window.orderBy("road_category")
 
-val scotlandRoadsWithNoIds = scotlandRoads
+scotlandRoads
   .select(
     "road_category",
     "road_type"
-  ).dropDuplicates()
-
-val northEnglandRoadsWithNoIds = northEnglandRoads
+  ).union(northEnglandRoads
   .select(
     "road_category",
     "road_type"
-  ).dropDuplicates()
-
-val southEnglandRoadsWithNoIds = southEnglandRoads
+  )).union(southEnglandRoads
   .select(
     "road_category",
     "road_type"
-  ).dropDuplicates()
-
-val collectedRoadsWithNoIds = scotlandRoadsWithNoIds.union(northEnglandRoadsWithNoIds).union(southEnglandRoadsWithNoIds).dropDuplicates()
-
-val collectedRoadsWithIds = collectedRoadsWithNoIds.withColumn("id", row_number().over(windowSortByRoadCategory))
+  )).dropDuplicates().withColumn("id", row_number().over(windowSortByRoadCategory))
   .select(
     "id",
     "road_category",
     "road_type"
-  ).write.insertInto("w_drogi")
+  ).toDF().as[Road].write.insertInto("w_drogi")
 
 val drogi = spark.sql("SELECT id, road_category, road_type FROM w_drogi")
 
