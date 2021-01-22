@@ -8,6 +8,7 @@ import org.apache.spark.sql.types._
 object TimeTransformation {
   val spark: SparkSession = SparkSession.builder()
     .appName("timeTransformation")
+    .enableHiveSupport()
     .getOrCreate()
 
   def readCsv(path: String): DataFrame = {
@@ -23,14 +24,16 @@ object TimeTransformation {
                       day: Int,
                       hour: Int)
 
-  val username = "username"
-
-  val mainDataNorthEngland : String = s"/user/$username/proj/spark/mainDataNorthEngland.csv"
-  val mainDataScotland :String = s"/user/$username/proj/spark/mainDataScotland.csv"
-  val mainDataSouthEngland :String = s"/user/$username/proj/spark/mainDataSouthEngland.csv"
-
+  import spark.implicits._
 
   def main(args: Array[String]): Unit = {
+
+    val path = args(0)
+
+    val mainDataNorthEngland : String = s"$path/mainDataNorthEngland.csv"
+    val mainDataScotland :String = s"$path/mainDataScotland.csv"
+    val mainDataSouthEngland :String = s"$path/mainDataSouthEngland.csv"
+
     val mainDataNorthEngland_df : DataFrame = readCsv(mainDataNorthEngland).cache()
     val mainDataScotland_df : DataFrame = readCsv(mainDataScotland).cache()
     val mainDataSouthEngland_df : DataFrame = readCsv(mainDataSouthEngland).cache()
@@ -47,7 +50,7 @@ object TimeTransformation {
         month(col("timestamp")).alias("month"),
         dayofmonth(col("timestamp")).alias("day"),
         hour(col("timestamp")).alias("hour")
-      ) : DataFrame
+      ).as[datetime]
 
     timetowrite.write.insertInto("d_time")
 

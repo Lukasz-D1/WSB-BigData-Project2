@@ -9,7 +9,8 @@ import java.sql.Timestamp
 
 object FactsWithWeatherTransformation {
   val spark: SparkSession = SparkSession.builder()
-    .appName("factsTransformation")
+    .appName("FactsWeatherTransformation")
+    .enableHiveSupport()
     .getOrCreate()
 
   def readCsv(path: String): DataFrame = {
@@ -44,13 +45,14 @@ object FactsWithWeatherTransformation {
                              time: String,
                              conditions: String)
 
-  val username = "username"
-
-  val mainDataNorthEngland : String = s"/user/$username/proj/spark/mainDataNorthEngland.csv"
-  val mainDataScotland :String = s"/user/$username/proj/spark/mainDataScotland.csv"
-  val mainDataSouthEngland :String = s"/user/$username/proj/spark/mainDataSouthEngland.csv"
-
   def main(args: Array[String]): Unit = {
+
+    val path = args(0)
+
+    val mainDataNorthEngland : String = s"$path/mainDataNorthEngland.csv"
+    val mainDataScotland :String = s"$path/mainDataScotland.csv"
+    val mainDataSouthEngland :String = s"$path/mainDataSouthEngland.csv"
+
     val mainDataNorthEngland_df : DataFrame = readCsv(mainDataNorthEngland).cache()
     val mainDataScotland_df : DataFrame = readCsv(mainDataScotland).cache()
     val mainDataSouthEngland_df : DataFrame = readCsv(mainDataSouthEngland).cache()
@@ -88,7 +90,8 @@ object FactsWithWeatherTransformation {
     val vehiclesLisstData: Column = coalesce(
       vehicles_type_list.map(c => when(d_vehicles("vehicle_type") === c, col(c)).otherwise(lit(null))): _*)
 
-    val weatherFile = spark.sparkContext.textFile(s"/user/$username/proj/spark/weather.txt")
+    val weatherFile = spark.sparkContext.textFile(s"$path/weather.txt")
+
     val linesRdd = weatherFile.flatMap(_.split("\n"))
 
     val capturePattern =

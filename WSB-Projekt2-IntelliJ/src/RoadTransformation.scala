@@ -2,16 +2,13 @@ package com.wsb.project
 
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, monotonically_increasing_id}
-// Uwaga: dane dot. dróg znajdują się w plikach "mainData<JED_ADM>"
-object RoadTransformation {
 
-  val username = "username"
+object RoadTransformation {
 
   val spark = SparkSession.builder()
     .appName("RoadTransformation")
+    .enableHiveSupport()
     .getOrCreate()
-
-  case class Road(id: BigInt, roadCategory: String, roadType: String)
 
   def readCsv(path: String) = {
     spark.read.
@@ -29,9 +26,11 @@ object RoadTransformation {
 
   def main(args: Array[String]): Unit = {
 
-    val scotlandRoadsPath = s"/user/$username/proj/spark/mainDataScotland.csv"
-    val northEnglandRoadsPath = s"/user/$username/proj/spark/mainDataNorthEngland.csv"
-    val southEnglandRoadsPath = s"/user/$username/proj/spark/mainDataSouthEngland.csv"
+    val path = args(0)
+
+    val northEnglandRoadsPath : String = s"$path/mainDataNorthEngland.csv"
+    val scotlandRoadsPath :String = s"$path/mainDataScotland.csv"
+    val southEnglandRoadsPath :String = s"$path/mainDataSouthEngland.csv"
 
     val scotlandRoads_ds = readCsv(scotlandRoadsPath)
     val northEnglandRoads_ds = readCsv(northEnglandRoadsPath)

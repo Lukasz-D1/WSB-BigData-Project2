@@ -9,7 +9,8 @@ import java.sql.Timestamp
 
 object FactsTransformation {
   val spark: SparkSession = SparkSession.builder()
-    .appName("factsTransformation")
+    .appName("FactsTransformation")
+    .enableHiveSupport()
     .getOrCreate()
 
   def readCsv(path: String): DataFrame = {
@@ -39,13 +40,13 @@ object FactsTransformation {
                        hgvs_6_articulated_axle: Int
                       )
 
-  val username = "username"
-
-  val mainDataNorthEngland : String = s"/user/$username/proj/spark/mainDataNorthEngland.csv"
-  val mainDataScotland :String = s"/user/$username/proj/spark/mainDataScotland.csv"
-  val mainDataSouthEngland :String = s"/user/$username/proj/spark/mainDataSouthEngland.csv"
-
   def main(args: Array[String]): Unit = {
+    val path = args(0)
+
+    val mainDataNorthEngland : String = s"$path/mainDataNorthEngland.csv"
+    val mainDataScotland :String = s"$path/mainDataScotland.csv"
+    val mainDataSouthEngland :String = s"$path/mainDataSouthEngland.csv"
+
     val mainDataNorthEngland_df : DataFrame = readCsv(mainDataNorthEngland).cache()
     val mainDataScotland_df : DataFrame = readCsv(mainDataScotland).cache()
     val mainDataSouthEngland_df : DataFrame = readCsv(mainDataSouthEngland).cache()

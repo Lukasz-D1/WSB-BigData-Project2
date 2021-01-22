@@ -1,3 +1,5 @@
+package com.wsb.project
+
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.{monotonically_increasing_id}
 
@@ -5,6 +7,7 @@ object WeatherTransformation {
 
   val spark = SparkSession.builder()
     .appName("WeatherTransformation")
+    .enableHiveSupport()
     .getOrCreate()
 
   import spark.implicits._
@@ -12,9 +15,9 @@ object WeatherTransformation {
   case class WeatherFromFile(region: String, date: String, time: String, conditions: String)
 
   def main(args: Array[String]): Unit = {
-    val username = "username"
+    val path = args(0)
 
-    val weatherFile = spark.sparkContext.textFile(s"/user/$username/proj/spark/weather.txt")
+    val weatherFile = spark.sparkContext.textFile(s"$path/weather.txt")
     val linesRdd = weatherFile.flatMap(_.split("\n"))
 
     val capturePattern =

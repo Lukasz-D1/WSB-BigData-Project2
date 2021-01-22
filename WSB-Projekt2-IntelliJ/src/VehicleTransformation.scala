@@ -4,7 +4,8 @@ import org.apache.spark.sql._
 
 object VehicleTransformation {
   val spark: SparkSession = SparkSession.builder()
-    .appName("vehiclesTransformation")
+    .appName("VehicleTransformation")
+    .enableHiveSupport()
     .getOrCreate()
 
   import spark.implicits._

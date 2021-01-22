@@ -7,6 +7,7 @@ object GeographyTransformation {
 
   val spark = SparkSession.builder()
     .appName("GeographyTransformation")
+    .enableHiveSupport()
     .getOrCreate()
 
 
@@ -28,16 +29,16 @@ object GeographyTransformation {
 
   def main(args: Array[String]): Unit = {
 
-    val username = "username"
+    val path = args(0)
 
-    val scotlandAuthoritiesPath = s"/user/$username/proj/spark/authoritiesScotland.csv"
-    val scotlandRegionsPath = s"/user/$username/proj/spark/regionsScotland.csv"
+    val scotlandAuthoritiesPath = s"$path/authoritiesScotland.csv"
+    val scotlandRegionsPath = s"$path/regionsScotland.csv"
 
-    val northEnglandAuthoritiesPath = s"/user/$username/proj/spark/authoritiesNorthEngland.csv"
-    val northEnglandRegionsPath = s"/user/$username/proj/spark/regionsNorthEngland.csv"
+    val northEnglandAuthoritiesPath = s"$path/authoritiesNorthEngland.csv"
+    val northEnglandRegionsPath = s"$path/regionsNorthEngland.csv"
 
-    val southEnglandAuthoritiesPath = s"/user/$username/proj/spark/authoritiesSouthEngland.csv"
-    val southEnglandRegionsPath = s"/user/$username/proj/spark/regionsSouthEngland.csv"
+    val southEnglandAuthoritiesPath = s"$path/authoritiesSouthEngland.csv"
+    val southEnglandRegionsPath = s"$path/regionsSouthEngland.csv"
 
     val scotlandAuthorities = readCsv(scotlandAuthoritiesPath).as[Authority].cache()
 
