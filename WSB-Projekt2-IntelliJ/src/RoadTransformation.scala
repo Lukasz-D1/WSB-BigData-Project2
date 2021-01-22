@@ -1,10 +1,7 @@
 package com.wsb.project
 
 import org.apache.spark.sql._
-import org.apache.spark.sql.functions.{row_number}
-import org.apache.spark.sql.expressions.Window
-import spark.implicits._
-
+import org.apache.spark.sql.functions.{col, monotonically_increasing_id}
 // Uwaga: dane dot. dróg znajdują się w plikach "mainData<JED_ADM>"
 object RoadTransformation {
 
@@ -24,35 +21,33 @@ object RoadTransformation {
       csv(path).cache()
   }
 
+  case class roadType (id: BigInt,
+                       road_category: String,
+                       road_type: String)
+
+  import spark.implicits._
+
   def main(args: Array[String]): Unit = {
 
     val scotlandRoadsPath = s"/user/$username/proj/spark/mainDataScotland.csv"
     val northEnglandRoadsPath = s"/user/$username/proj/spark/mainDataNorthEngland.csv"
     val southEnglandRoadsPath = s"/user/$username/proj/spark/mainDataSouthEngland.csv"
 
-    val scotlandRoads = readCsv(scotlandRoadsPath)
-    val northEnglandRoads = readCsv(northEnglandRoadsPath)
-    val southEnglandRoads = readCsv(southEnglandRoadsPath)
+    val scotlandRoads_ds = readCsv(scotlandRoadsPath)
+    val northEnglandRoads_ds = readCsv(northEnglandRoadsPath)
+    val southEnglandRoads_ds = readCsv(southEnglandRoadsPath)
 
-    val windowSortByRoadCategory = Window.orderBy("road_category")
+    val dataUnion = scotlandRoads_ds.select(scotlandRoads_ds("road_category"), scotlandRoads_ds("road_type")).
+      union(northEnglandRoads_ds.select(northEnglandRoads_ds("road_category"), northEnglandRoads_ds("road_type")).
+        union(southEnglandRoads_ds.select(southEnglandRoads_ds("road_category"), southEnglandRoads_ds("road_type")))).
+      distinct()
 
-    scotlandRoads
-      .select(
-        "road_category",
-        "road_type"
-      ).union(northEnglandRoads
-      .select(
-        "road_category",
-        "road_type"
-      )).union(southEnglandRoads
-      .select(
-        "road_category",
-        "road_type"
-      )).dropDuplicates().withColumn("id", row_number().over(windowSortByRoadCategory))
-      .select(
-        "id",
-        "road_category",
-        "road_type"
-      ).toDF().as[Road].write.insertInto("w_drogi")
+
+    val roadsToWrite =
+      dataUnion.withColumn("id", monotonically_increasing_id())
+        .select(col("id").alias("id"), col("road_category"), col("road_type")
+        ).as[roadType]
+
+    roadsToWrite.write.insertInto("d_roads")
   }
 }
