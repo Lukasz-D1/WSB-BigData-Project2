@@ -1,11 +1,11 @@
 spark.sql("show tables").show() 
 
-spark.sql("""CREATE TABLE IF NOT EXISTS `w_czas` ( 
-    `data` timestamp, 
-    `dzien` int,
-    `miesiac` int, 
-    `rok` int,
-    `godzina` int) 
+spark.sql("""CREATE TABLE IF NOT EXISTS `d_time` ( 
+    `timestamp` timestamp, 
+    `year` int,
+    `month` int, 
+    `day` int,
+    `hour` int) 
 ROW FORMAT SERDE 
     'org.apache.hadoop.hive.ql.io.orc.OrcSerde'
 STORED AS INPUTFORMAT
@@ -13,9 +13,9 @@ STORED AS INPUTFORMAT
  OUTPUTFORMAT 
     'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'""")
 
-spark.sql("""CREATE TABLE IF NOT EXISTS `w_pogoda` ( 
-    `id_pogody` int, 
-    `warunki_pogodowe` string) 
+spark.sql("""CREATE TABLE IF NOT EXISTS `d_weather` ( 
+    `index` bigint, 
+    `conditions` string) 
 ROW FORMAT SERDE 
     'org.apache.hadoop.hive.ql.io.orc.OrcSerde'
 STORED AS INPUTFORMAT
@@ -23,11 +23,11 @@ STORED AS INPUTFORMAT
  OUTPUTFORMAT 
     'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'""")
 
-spark.sql("""CREATE TABLE IF NOT EXISTS `w_geografia` ( 
-    `id_jednostki_adm` string, 
-    `nazwa` string,
-    `kod_regionu` string,
-    `nazwa_regionu` string) 
+spark.sql("""CREATE TABLE IF NOT EXISTS `d_geography` ( 
+    `local_authority_ons_code` string, 
+    `local_authority_name` string,
+    `region_ons_code` string,
+    `region_name` string) 
 ROW FORMAT SERDE 
     'org.apache.hadoop.hive.ql.io.orc.OrcSerde'
 STORED AS INPUTFORMAT
@@ -35,10 +35,10 @@ STORED AS INPUTFORMAT
  OUTPUTFORMAT 
     'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'""")
 
-spark.sql("""CREATE TABLE IF NOT EXISTS `w_drogi` ( 
-    `id_drogi` int, 
-    `typ_drogi` string,
-    `kategoria_drogi` string) 
+spark.sql("""CREATE TABLE IF NOT EXISTS `d_roads` ( 
+    `id` bigint, 
+    `road_category` string,
+    `road_type` string) 
 ROW FORMAT SERDE 
     'org.apache.hadoop.hive.ql.io.orc.OrcSerde'
 STORED AS INPUTFORMAT
@@ -46,11 +46,11 @@ STORED AS INPUTFORMAT
  OUTPUTFORMAT 
     'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'""")
 
-spark.sql("""CREATE TABLE IF NOT EXISTS `w_typ_pojazdu` ( 
-    `id_typu_pojazdu` int, 
-    `typ_pojazdu` string,
-    `kategoria_pojazdu` string,
-    `czy_silnik` boolean) 
+spark.sql("""CREATE TABLE IF NOT EXISTS `d_vehicle` ( 
+    `id` int, 
+    `vehicle_type` string,
+    `vehicle_category` string,
+    `has_engine` boolean) 
 ROW FORMAT SERDE 
     'org.apache.hadoop.hive.ql.io.orc.OrcSerde'
 STORED AS INPUTFORMAT
@@ -58,17 +58,16 @@ STORED AS INPUTFORMAT
  OUTPUTFORMAT 
     'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'""")
 
-spark.sql(""" CREATE TABLE IF NOT EXISTS `f_fakty` (
-    `data` date,
-    `id_pogody` int,
-    `id_jednostki_adm` string,
-    `id_drogi` int,
-    `id_typu_pojazdu` int,
-    `liczba_pojazdow` int)
+spark.sql(""" CREATE TABLE IF NOT EXISTS `f_facts` (
+    `timestamp` timestamp,
+    `local_authoirty_ons_code` string,
+    `road_category` bigint,
+    `vehicle_id` int,
+    `weather_id` bigint,
+    `vehicle_count` int)
 ROW FORMAT SERDE 
     'org.apache.hadoop.hive.ql.io.orc.OrcSerde'
 STORED AS INPUTFORMAT
     'org.apache.hadoop.hive.ql.io.orc.OrcInputFormat'
  OUTPUTFORMAT 
     'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'""")
-

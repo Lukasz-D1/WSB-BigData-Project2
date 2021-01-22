@@ -30,6 +30,6 @@ object WeatherTransformation {
 
     matchesNoDuplicates.withColumn("index", monotonically_increasing_id()).
       select($"index", $"conditions").
-      write.insertInto("w_pogoda")
+      write.insertInto("d_weather")
   }
 }

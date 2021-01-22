@@ -58,7 +58,7 @@ object GeographyTransformation {
         scotlandAuthorities("local_authority_name"),
         scotlandRegions("region_ons_code"),
         scotlandRegions("region_name")
-      ).write.insertInto("w_geografia")
+      ).write.insertInto("d_geography")
 
     northEnglandAuthorities.join(northEnglandRegions,
       northEnglandAuthorities("region_ons_code") === northEnglandRegions("region_ons_code")).
@@ -67,7 +67,7 @@ object GeographyTransformation {
         northEnglandAuthorities("local_authority_name"),
         northEnglandRegions("region_ons_code"),
         northEnglandRegions("region_name")
-      ).write.insertInto("w_geografia")
+      ).write.insertInto("d_geography")
 
     southEnglandAuthorities.join(southEnglandRegions,
       southEnglandAuthorities("region_ons_code") === southEnglandRegions("region_ons_code")).
@@ -76,6 +76,6 @@ object GeographyTransformation {
         southEnglandAuthorities("local_authority_name"),
         southEnglandRegions("region_ons_code"),
         southEnglandRegions("region_name")
-      ).write.insertInto("w_geografia")
+      ).write.insertInto("d_geography")
   }
 }
